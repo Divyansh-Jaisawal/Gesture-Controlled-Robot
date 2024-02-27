@@ -1,0 +1,99 @@
+#include <Wire.h>
+#include <MPU6050.h>
+
+// Define the pins connected to the motor driver module
+const int motor1Pin1 = 2; // Motor 1 input 1
+const int motor1Pin2 = 3; // Motor 1 input 2
+const int motor2Pin1 = 4; // Motor 2 input 1
+const int motor2Pin2 = 5; // Motor 2 input 2
+
+MPU6050 mpu;
+
+// Define threshold values for gesture detection
+const int threshold = 1000; // Adjust this value as needed
+
+void setup() {
+  Wire.begin();
+  Serial.begin(9600);
+
+  pinMode(motor1Pin1, OUTPUT);
+  pinMode(motor1Pin2, OUTPUT);
+  pinMode(motor2Pin1, OUTPUT);
+  pinMode(motor2Pin2, OUTPUT);
+
+  mpu.initialize();
+  Serial.println(mpu.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+}
+
+void loop() {
+  int16_t ax, ay, az;
+  mpu.getAcceleration(&ax, &ay, &az);
+
+  Serial.print("ax: ");
+  Serial.print(ax);
+  Serial.print(" ay: ");
+  Serial.print(ay);
+  Serial.print(" az: ");
+  Serial.println(az);
+
+  // Detect gestures based on accelerometer data
+  if (abs(ay) > threshold) {
+    // Forward or backward gesture
+    if (ay > 0) {
+      // Move forward
+      moveForward();
+    } else {
+      // Move backward
+      moveBackward();
+    }
+  } else if (abs(ax) > threshold) {
+    // Left or right gesture
+    if (ax > 0) {
+      // Turn left
+      turnLeft();
+    } else {
+      // Turn right
+      turnRight();
+    }
+  } else {
+    // Stop the robot
+    stopRobot();
+  }
+
+  delay(100); // Adjust delay as needed for responsiveness
+}
+
+void moveForward() {
+  digitalWrite(motor1Pin1, HIGH);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, HIGH);
+  digitalWrite(motor2Pin2, LOW);
+}
+
+void moveBackward() {
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, HIGH);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, HIGH);
+}
+
+void turnLeft() {
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, HIGH);
+  digitalWrite(motor2Pin1, HIGH);
+  digitalWrite(motor2Pin2, LOW);
+}
+
+void turnRight() {
+  digitalWrite(motor1Pin1, HIGH);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, HIGH);
+}
+
+void stopRobot() {
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, LOW);
+}
